@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <title>FLUJO EJERCICIOS</title>
+    
+    <link rel="stylesheet" href="deepseek_css_20251127_703072.css">
+    <!-- Load local stylesheet with final overrides -->
+    <link rel="stylesheet" href="estilosflujo.css">
+    <style>
+        /* estilos mínimos para mostrar error en campos */
+        .error-input { border: 2px solid #d32f2f !important; }
+        .error-message { color: #d32f2f; font-size:0.9em; margin-top:6px; display:none; }
+
+        /* Aumenta el ancho del contenedor para que tema y video sean más anchos */
+        .container { max-width: 800px; margin: 20px auto; }
+
+        /* Asegura que la caja de conceptos ocupe todo el ancho disponible */
+        .conceptos { width: 100%; box-sizing: border-box; }
+
+        /* Ajuste del iframe del video para verse mejor en el ancho mayor */
+        .video-wrap iframe { width: 100%; height: 340px; border-radius: 6px; }
+
+        /* Estilos para el semáforo de dificultad */
+        .dificultad {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .dificultad.verde {
+            background-color: #c8e6c9;
+            color: #2e7d32;
+        }
+        .dificultad.amarillo {
+            background-color: #fff9c4;
+            color: #f57f17;
+        }
+        .dificultad.rojo {
+            background-color: #ffcdd2;
+            color: #c62828;
+        }
+
+        /* Mejora para el logo */
+        .site-header {
+            background: rgba(26, 46, 145, 0.8);
+            backdrop-filter: blur(5px);
+        }
+        .utb-logo {
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25));
+            opacity: 1;
+            height: 56px;
+            width: auto;
+            border-radius: 8px;
+            display: block;
+        }
+
+        /* Responsive: en pantallas pequeñas reduce el alto y el max-width */
+        @media (max-width: 900px) {
+            .container { max-width: 95%; padding: 16px; }
+            .video-wrap iframe { height: 220px; }
+        }
+   </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="brand">
+            <img class="utb-logo" src="./ayuda.png" alt="Logo UTB" width="56" height="56" onerror="this.style.display='none'; document.getElementById('logoTextFallback').style.display='block';">
+            <div id="logoTextFallback" class="logo-text" style="display:none;">UTB</div>
+            <div class="brand-text">
+                <h1>FLUJO EJERCICIOS</h1>
+                <p>Universidad Tecnológica de Bolívar</p>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+    <div class="card">
+    <div id="inicio">
+        <h2 style="font-size:2em; font-weight:bold;">BIENVENIDO A FLUJO EJERCICIOS</h2>
+        <label>Nombre:</label>
+        <input type="text" id="nombre" required oninput="clearFieldError('nombre')">
+        <span id="nombreError" class="error-message">Campo obligatorio</span>
+        <br><br>
+        <label>Código:</label>
+        <input type="text" id="codigo" required oninput="clearFieldError('codigo')">
+        <span id="codigoError" class="error-message">Campo obligatorio</span>
+        <br><br>
+        <button onclick="iniciar()">Ingresar</button>
+    </div>
+
+    <div id="temas" class="hidden">
+        <h3>Selecciona un tema</h3>
+        <select id="temaSelect" onchange="mostrarEjercicios()">
+            <option value="">-- Selecciona --</option>
+            <option value="tema1">Tema 1: Número de Reynolds</option>
+            <option value="tema2">Tema 2: Perfil de velocidad</option>
+            <option value="tema3">Tema 3: Introducción a las máquinas de flujos</option>
+        </select>
+        <div id="ejercicios" class="hidden"></div>
+    </div>
+
+    <div id="ejercicioDetalle" class="hidden">
+    <h4 id="ejercicioTitulo"></h4>
+    <div class="timer">Tiempo restante: <span id="tiempo">10:00</span></div>
+    <div>Intentos restantes: <span id="intentos">3</span></div>
+    <div id="pregunta"></div>
+    <input type="text" id="respuesta" placeholder="Tu respuesta">
+    <button onclick="verificarRespuesta()">Verificar</button>
+    <div id="feedback"></div>
+    <button id="volverTemas" onclick="volverATemas()" style="margin-top:15px;">Selecciona otro tema</button>
+    </div>
+    </div>
+</div>
+
+<script>
+    // Sistema de estadísticas para el semáforo
+    let estadisticas = JSON.parse(localStorage.getItem('estadisticasEjercicios')) || {};
+    
+    const conceptos = {
+        tema1: {
+            texto: "El número de Reynolds (Re) es un valor adimensional que se usa en mecánica de fluidos para predecir el tipo de flujo de un fluido dentro de una tubería, canal o sobre una superficie. Este número compara la fuerza inercial del fluido con su fuerza viscosa, y se calcula con la fórmula: Re = (densidad × velocidad × diámetro) / viscosidad",
+            video: "https://www.youtube.com/watch?v=aGyagI1F-Og"
+        },
+        tema2: {
+            texto: "El perfil de velocidad describe cómo varía la velocidad del fluido en diferentes puntos de una sección transversal. En flujo laminar, el perfil es parabólico; en flujo turbulento, es más uniforme.",
+            video: "https://www.youtube.com/watch?v=aGyagI1F-Og"
+        },
+        tema3: {
+            texto: "Las máquinas de flujo son dispositivos que transfieren energía a los fluidos, como bombas y turbinas. Se estudian para entender cómo se mueven y transforman los fluidos en sistemas industriales.",
+            video: "https://www.youtube.com/watch?v=s7wJhTEtAMM"
+        }
+    };
+
+    // Generadores de ejercicios con valores aleatorios
+    const generadoresEjercicios = {
+        tema1: [
+            {
+                titulo: "Ejercicio 1: Aplicar la fórmula de Reynolds",
+                generar: function() {
+                    const rho = Math.floor(Math.random() * (1200 - 800 + 1)) + 800; // entre 800 y 1200
+                    const v = (Math.random() * (5 - 1) + 1).toFixed(1); // entre 1.0 y 5.0
+                    const D = (Math.random() * (0.2 - 0.05) + 0.05).toFixed(2); // entre 0.05 y 0.2
+                    const mu = (Math.random() * (0.002 - 0.0005) + 0.0005).toFixed(4); // entre 0.0005 y 0.002
+                    
+                    const Re = Math.round((rho * v * D) / mu);
+                    
+                    return {
+                        pregunta: `Calcule el número de Reynolds usando \\(Re=\\dfrac{\\rho\\,v\\,D}{\\mu}\\).<br> Datos: \\(\\rho=${rho}\\ \\mathrm{kg/m^3}\\), \\(v=${v}\\ \\mathrm{m/s}\\), \\(D=${D}\\ \\mathrm{m}\\), \\(\\mu=${mu}\\ \\mathrm{Pa\\cdot s}\\).`,
+                        respuesta: Re.toString()
+                    };
+                }
+            },
+            {
+                titulo: "Ejercicio 2: Aplicar el número de Reynolds para conseguir la velocidad promedio",
+                generar: function() {
+                    const Nr = 2000;
+                    const diametroPulg = 2;
+                    const diametroFt = diametroPulg / 12;
+                    const ge = 0.89;
+                    const rho = ge * 62.4; // densidad en lb/ft³
+                    const mu = (Math.random() * (0.0008 - 0.0004) + 0.0004).toFixed(5); // viscosidad entre 0.0004 y 0.0008 lb/(ft·s)
+                    
+                    const v = (Nr * mu) / (rho * diametroFt);
+                    const vRounded = v.toFixed(1);
+                    
+                    return {
+                        pregunta: `Determine el valor de velocidad promedio cuando el flujo tiene un valor de Nr = ${Nr} para un aceite con especificación SAE 10 a 60°C fluyera por una tubería de ${diametroPulg} pulg. El aceite tiene una gravedad especifica de ${ge} y viscosidad μ = ${mu} lb/(ft·s) (Respuesta en ft/s)`,
+                        respuesta: vRounded
+                    };
+                }
+            },
+            {
+                titulo: "Ejercicio 3: Usar el número de Reynolds y los valores de rugosidad en el diagrama de Moody para hallar el valor del factor de fricción",
+                generar: function() {
+                    const diametroPulg = 1;
+                    const diametroFt = diametroPulg / 12;
+                    const velocidad = (Math.random() * (35 - 25) + 25).toFixed(1); // entre 25 y 35 ft/s
+                    const temperatura = 160; // °F
+                    const nu = 0.000005; // viscosidad cinemática del agua a 160°F en ft²/s
+                    
+                    const Re = (velocidad * diametroFt) / nu;
+                    // Factor de fricción aproximado para tubería de hierro dúctil recubierta
+                    const f = (0.25 / Math.pow(Math.log10(0.00015/(3.7*diametroFt) + 5.74/Math.pow(Re, 0.9)), 2)).toFixed(4);
+                    
+                    return {
+                        pregunta: `Determine el factor de fricción f si por una tubería de hierro dúctil recubierta de ${diametroPulg} pulg de diámetro, fluye agua a ${temperatura}°F y ${velocidad} pies/s`,
+                        respuesta: f
+                    };
+                }
+            }
+        ],
+        tema2: [
+            {
+                titulo: "Ejercicio 1: Calcular la velocidad máxima en el eje",
+                generar: function() {
+                    const rho = 1000;
+                    const mu = 0.001;
+                    const R = 0.02;
+                    const dpdx = - (Math.floor(Math.random() * (300 - 150 + 1)) + 150); // entre -150 y -300 Pa/m
+                    
+                    const u_max = (-dpdx * R * R) / (4 * mu);
+                    const u_maxRounded = Math.round(u_max);
+                    
+                    return {
+                        pregunta: `Agua (ρ = ${rho} kg/m³, μ = ${mu} Pa·s) fluye de manera laminar y estacionaria por una tubería circular horizontal de radio R = ${R} m. La caída de presión por unidad de longitud es dp/dx = ${dpdx} Pa/m. Calcule la velocidad máxima en el eje.`,
+                        respuesta: u_maxRounded.toString()
+                    };
+                }
+            },
+            {
+                titulo: "Ejercicio 2: Calcule la velocidad máxima u_max",
+                generar: function() {
+                    const R = 0.02;
+                    const Q = (Math.random() * (0.0007 - 0.0003) + 0.0003).toFixed(4); // entre 0.0003 y 0.0007 m³/s
+                    
+                    const u_max = (2 * Q) / (Math.PI * R * R);
+                    const u_maxRounded = u_max.toFixed(1);
+                    
+                    return {
+                        pregunta: `El perfil de velocidad en un tubo es v(r) = v_max(1 − r²/R²). Si el caudal volumétrico es Q = ${Q} m³/s y el radio del tubo R = ${R} m, calcule la velocidad máxima u_max.`,
+                        respuesta: u_maxRounded
+                    };
+                }
+            },
+            {
+                titulo: "Ejercicio 3: Usar v(y) = (1/2μ) * dp/dx * (yh − y²)",
+                generar: function() {
+                    const mu = 0.001;
+                    const h = 0.008;
+                    const dpdx = -200;
+                    const y = h / 2; // punto medio entre el centro y la pared
+                    
+                    const v = (1 / (2 * mu)) * dpdx * (y * h - y * y);
+                    const vRounded = Math.abs(v).toFixed(2);
+                    
+                    return {
+                        pregunta: `Entre dos placas paralelas separadas h = ${h*1000} mm, fluye agua (μ = ${mu} Pa·s) con un gradiente de presión dp/dx = ${dpdx} Pa/m. Determine la velocidad en el punto medio entre el centro y la pared.`,
+                        respuesta: vRounded
+                    };
+                }
+            }
+        ],
+        tema3: [
+            {
+                titulo: "Ejercicio 1: Usar la formula P = ρ * g * Q * h",
+                generar: function() {
+                    const rho = 1000;
+                    const g = 9.81;
+                    const Q = (Math.random() * (0.03 - 0.01) + 0.01).toFixed(3); // entre 0.01 y 0.03 m³/s
+                    const h = Math.floor(Math.random() * (15 - 8 + 1)) + 8; // entre 8 y 15 m
+                    
+                    const P = rho * g * Q * h / 1000; // en kW
+                    const PRounded = P.toFixed(2);
+                    
+                    return {
+                        pregunta: `Una bomba eleva ${Q} m³/s de agua desde un tanque inferior a otro superior con una diferencia de altura de ${h} m. Calcule la potencia hidráulica entregada al fluido en kW.`,
+                        respuesta: PRounded
+                    };
+                }
+            },
+            {
+                titulo: "Ejercicio 2: Usar: H = z₂ − z₁ + h_perdidas",
+                generar: function() {
+                    const z2_z1 = 6; // diferencia de altura en m
+                    const h_perdidas = (Math.random() * (3 - 1) + 1).toFixed(1); // entre 1 y 3 m
+                    
+                    const H = z2_z1 + parseFloat(h_perdidas); // altura total en m
+                    const H_mm = H * 1000; // convertir a mm
+                    
+                    return {
+                        pregunta: `Una bomba impulsa agua de un tanque abierto a otro de ${z2_z1} metros más alto. El caudal es de 0,015 m³/s, el diámetro de la tubería es de 4 cm, y las pérdidas de carga equivalen a ${h_perdidas} m. Determine la altura total desarrollada por la bomba en milímetros.`,
+                        respuesta: H_mm.toString()
+                    };
+                }
+            },
+            {
+                titulo: "Ejercicio 3: Usar: T₂ = T₁(P₂/P₁)^((k−1)/k)",
+                generar: function() {
+                    const P1 = 100; // kPa
+                    const T1 = 25 + 273; // K
+                    const P2 = 600; // kPa
+                    const k = 1.4;
+                    
+                    const T2 = T1 * Math.pow(P2 / P1, (k - 1) / k);
+                    const T2Rounded = Math.round(T2 * 1000); // para evitar decimales
+                    
+                    return {
+                        pregunta: `El aire entra a un compresor a ${P1} kPa y 25 °C y sale a ${P2} kPa. Suponiendo un proceso isentrópico (k = ${k}), calcule la temperatura de salida en K (multiplicada por 1000 para evitar decimales).`,
+                        respuesta: T2Rounded.toString()
+                    };
+                }
+            }
+        ]
+    };
+
+    let usuario = {};
+    let temaActual = "";
+    let ejercicioActual = null;
+    let tiempoRestante = 600; // 10 minutos 
+    let intentos = 3;
+    let timerInterval;
+    let lastTick = 0; // used to prevent multiple rapid decrements if several intervals are active
+
+    function iniciar() {
+        const nombreEl = document.getElementById('nombre');
+        const codigoEl = document.getElementById('codigo');
+        const nombre = nombreEl.value.trim();
+        const codigo = codigoEl.value.trim();
+
+        let valido = true;
+
+        if (!nombre) {
+            nombreEl.classList.add('error-input');
+            const ne = document.getElementById('nombreError');
+            ne.style.display = 'block';
+            ne.textContent = 'Campo obligatorio';
+            valido = false;
+        }
+        if (!codigo) {
+            codigoEl.classList.add('error-input');
+            const ce = document.getElementById('codigoError');
+            ce.style.display = 'block';
+            ce.textContent = 'Campo obligatorio';
+            valido = false;
+        }
+
+        if (!valido) {
+            // opcional: enfocar el primer campo vacío
+            if (!nombre) nombreEl.focus();
+            else if (!codigo) codigoEl.focus();
+            return;
+        }
+
+        usuario = { nombre, codigo };
+        document.getElementById('inicio').classList.add('hidden');
+        document.getElementById('temas').classList.remove('hidden');
+    }
+
+    function clearFieldError(id) {
+        const el = document.getElementById(id);
+        const err = document.getElementById(id + 'Error');
+        if (el) el.classList.remove('error-input');
+        if (err) err.style.display = 'none';
+    }
+
+    function mostrarEjercicios() {
+        temaActual = document.getElementById('temaSelect').value;
+        const ejerciciosDiv = document.getElementById('ejercicios');
+        ejerciciosDiv.innerHTML = "";
+        if (temaActual && generadoresEjercicios[temaActual]) {
+            ejerciciosDiv.classList.remove('hidden');
+            
+            // Mostrar el título del tema y el video
+            const concepto = conceptos[temaActual];
+            let tituloTema = "";
+            if (temaActual === "tema1") tituloTema = "Número de Reynolds";
+            else if (temaActual === "tema2") tituloTema = "Perfil de velocidad";
+            else if (temaActual === "tema3") tituloTema = "Introducción a las máquinas de flujos";
+            
+            // Normaliza enlaces de YouTube y short links (youtu.be)
+            function normalizeYouTubeUrl(raw) {
+                if (!raw) return '';
+                const url = raw.trim();
+                // youtu.be short link
+                const shortMatch = url.match(/youtu\.be\/([^?&/]+)/);
+                if (shortMatch) return 'https://www.youtube-nocookie.com/embed/' + shortMatch[1];
+                // watch?v= style or query param
+                const vMatch = url.match(/[?&]v=([^&]+)/);
+                if (vMatch) return 'https://www.youtube-nocookie.com/embed/' + vMatch[1];
+                // embed/ style
+                const embedMatch = url.match(/embed\/([^?&/]+)/);
+                if (embedMatch) return 'https://www.youtube-nocookie.com/embed/' + embedMatch[1];
+                // Try to extract an 11 char ID fallback
+                const idFallback = url.match(/[A-Za-z0-9_-]{11}/);
+                if (idFallback) return 'https://www.youtube-nocookie.com/embed/' + idFallback[0];
+                return '';
+            }
+            let embedUrl = normalizeYouTubeUrl(concepto.video || "");
+
+            ejerciciosDiv.innerHTML += `
+                <div class="conceptos">
+                    <h4>${tituloTema}</h4>
+                    <p>${concepto.texto}</p>
+                    <div class="video-wrap" style="margin:12px 0;">
+                        <div class="video-note" role="status" aria-live="polite">Si el video no carga o está bloqueado, <a id="noteOpenInYT" href="${concepto.video}" target="_blank" rel="noopener noreferrer">Abrir en YouTube</a></div>
+                        ${embedUrl ? `
+                        <iframe id="videoFrame" loading="lazy" width="100%" height="250" src="${embedUrl}?rel=0" frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                            allowfullscreen></iframe>
+                        ` : ''}
+                        <div class="video-fallback" id="videoFallback">El video no carga correctamente aquí. <a id="ytLink" href="${concepto.video}" target="_blank" rel="noopener noreferrer">Abrir en YouTube</a></div>
+                        <img id="videoThumbnail" class="video-thumb" alt="Miniatura del video" src="" style="display:none;"/>
+                        <div id="videoDiag" class="video-diag" aria-hidden="true" style="display:none;"></div>
+                        <div style="margin-top:8px;">
+                            <button id="repetirVideo" type="button" style="background:#1976d2;color:#fff;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;">
+                                Repetir video
+                            </button>
+                            <button id="abrirEnYouTube" type="button" style="margin-left:8px;background:#555;color:#fff;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;">
+                                Abrir en YouTube
+                            </button>
+                        </div>
+                        <hr>
+                    </div>
+                </div>
+            `;
+
+            setTimeout(() => {
+                const btnRep = document.getElementById('repetirVideo');
+                const btnYT = document.getElementById('abrirEnYouTube');
+                const iframe = document.getElementById('videoFrame');
+                const fallback = document.getElementById('videoFallback');
+                // Si no hay iframe o el embed URL estaba vacio, mostrar fallback
+                if (!iframe) {
+                    if (fallback) fallback.style.display = 'block';
+                } else {
+                    // Mostrar fallback si el iframe no carga tras 2 segundos (por bloqueos o CORS)
+                    let loaded = false;
+                    iframe.addEventListener('load', () => {
+                        loaded = true;
+                        if (fallback) fallback.style.display = 'none';
+                        // give iframe an accessible title for screen readers
+                        try { iframe.setAttribute('title', 'Video: ' + tituloTema); iframe.setAttribute('referrerpolicy', 'no-referrer'); } catch(e){}
+                    });
+                    setTimeout(() => { if (!loaded && fallback) { fallback.style.display = 'block'; console.warn('iframe did not load within timeout, may be blocked by browser settings'); } }, 2000);
+                }
+                // Diagnostic: check thumbnail load and set diagnostic status
+                const diag = document.getElementById('videoDiag');
+                const thumb = document.getElementById('videoThumbnail');
+                let ytId = '';
+                // extract id from embedUrl like https://www.youtube-nocookie.com/embed/ID
+                const idMatch = embedUrl.match(/embed\/([^?&/]+)/);
+                if (idMatch) ytId = idMatch[1];
+                const thumbUrl = ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : '';
+                if (thumbUrl && thumb) {
+                    // try to load the thumbnail to test connectivity to YouTube
+                    thumb.src = thumbUrl;
+                    thumb.style.display = 'none';
+                    const imgTest = new Image();
+                    imgTest.onload = () => {
+                        // thumbnail loaded -> network ok
+                        if (diag) { diag.style.display = 'block'; diag.className = 'video-diag success'; diag.innerHTML = 'Conexión a YouTube OK. Si el video no aparece, el navegador podría estar bloqueando contenido embebido. <strong>Consejo:</strong> en Microsoft Edge vaya a <em>Configuración → Privacidad, búsqueda y servicios → Tracking prevention</em> y pruebe con <em>Balanced</em> o permita el sitio.'; }
+                        if (thumb) thumb.style.display = 'block';
+                        console.log('Thumbnail loaded successfully:', thumbUrl);
+                    };
+                    imgTest.onerror = () => {
+                        if (diag) { diag.style.display = 'block'; diag.className = 'video-diag error'; diag.innerHTML = 'No se puede acceder a YouTube desde este dispositivo o red. <strong>Consejo:</strong> Intente abrir el enlace en una pestaña nueva o revise la conexión a internet y las políticas de bloqueo del navegador / proxy.'; }
+                        if (fallback) fallback.style.display = 'block';
+                        console.warn('Thumbnail test failed, thumbnail URL not reachable:', thumbUrl);
+                    };
+                    imgTest.src = thumbUrl + '?cachetest=' + Date.now();
+                } else if (diag) {
+                    diag.style.display = 'block';
+                    diag.className = 'video-diag warn';
+                    diag.textContent = 'No se pudo determinar la miniatura del video. Usa Abrir en YouTube.';
+                }
+                if (btnRep) btnRep.onclick = repetirVideo;
+                if (btnYT) btnYT.onclick = () => {
+                    // abrir la URL original en nueva pestaña (si existe)
+                    window.open(concepto.video, '_blank');
+                };
+            }, 10);
+
+            // Mostrar ejercicios con indicador de dificultad
+            generadoresEjercicios[temaActual].forEach((ej, idx) => {
+                const btn = document.createElement('button');
+                btn.textContent = ej.titulo;
+                btn.className = "ejercicio";
+                
+                // Añadir indicador de dificultad
+                const ejercicioId = `${temaActual}-${idx}`;
+                const stats = estadisticas[ejercicioId] || { intentos: 0, aciertos: 0 };
+                const porcentajeAcierto = stats.intentos > 0 ? (stats.aciertos / stats.intentos) * 100 : 0;
+                
+                let dificultadClass = "rojo";
+                let dificultadText = "Difícil";
+                
+                if (porcentajeAcierto >= 80) {
+                    dificultadClass = "verde";
+                    dificultadText = "Fácil";
+                } else if (porcentajeAcierto >= 40) {
+                    dificultadClass = "amarillo";
+                    dificultadText = "Media";
+                }
+                
+                const dificultadSpan = document.createElement('span');
+                dificultadSpan.className = `dificultad ${dificultadClass}`;
+                dificultadSpan.textContent = dificultadText;
+                
+                btn.appendChild(dificultadSpan);
+                btn.onclick = () => iniciarEjercicio(idx);
+                ejerciciosDiv.appendChild(btn);
+            });
+        } else {
+            ejerciciosDiv.classList.add('hidden');
+        }
+    }
+
+    function repetirVideo() {
+        const iframe = document.getElementById('videoFrame');
+        if (!iframe || !iframe.src) {
+            // si no hay iframe (blocked), abrir el video en YouTube
+            const yt = document.getElementById('ytLink');
+            if (yt && yt.href) window.open(yt.href, '_blank');
+            return;
+        }
+        const src = iframe.src;
+        // pausa/stop reload: quitar src y volver a poner para reiniciar reproducción
+        iframe.src = '';
+        // pequeño retraso para forzar recarga
+        setTimeout(() => { iframe.src = src; }, 100);
+    }
+
+    function iniciarEjercicio(idx) {
+        const generador = generadoresEjercicios[temaActual][idx];
+        const ejercicioGenerado = generador.generar();
+        
+        ejercicioActual = {
+            id: `${temaActual}-${idx}`,
+            titulo: generador.titulo,
+            pregunta: ejercicioGenerado.pregunta,
+            respuesta: ejercicioGenerado.respuesta
+        };
+        
+        document.getElementById('temas').classList.add('hidden');
+        document.getElementById('ejercicioDetalle').classList.remove('hidden');
+        document.getElementById('ejercicioTitulo').textContent = ejercicioActual.titulo;
+
+        // insertar la pregunta como HTML (permite LaTeX)
+        const preguntaEl = document.getElementById('pregunta');
+        preguntaEl.innerHTML = ejercicioActual.pregunta;
+
+        // forzar a MathJax a renderizar la fórmula recién insertada
+        if (window.MathJax && MathJax.typesetPromise) {
+            MathJax.typesetPromise([preguntaEl]).catch(err => console.error(err));
+        } else {
+            // si MathJax aún no está listo, reintentar tras un pequeño retraso
+            setTimeout(() => {
+                if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([preguntaEl]).catch(err => console.error(err));
+            }, 300);
+        }
+        
+        document.getElementById('respuesta').value = "";
+        document.getElementById('feedback').innerHTML = "";
+        intentos = 3;
+        tiempoRestante = 600;
+        document.getElementById('intentos').textContent = intentos;
+        // ensure any previous timer is cleared before starting a new one
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+        actualizarTiempo();
+        timerInterval = setInterval(actualizarTiempo, 1000);
+    }
+
+    function actualizarTiempo() {
+        if (tiempoRestante <= 0) {
+            clearInterval(timerInterval);
+            document.getElementById('feedback').innerHTML = '<span class="error">¡Tiempo agotado!</span>';
+            document.getElementById('respuesta').disabled = true;
+            
+            // Registrar intento fallido por tiempo
+            if (ejercicioActual && ejercicioActual.id) {
+                const stats = estadisticas[ejercicioActual.id] || { intentos: 0, aciertos: 0 };
+                stats.intentos += 1;
+                estadisticas[ejercicioActual.id] = stats;
+                localStorage.setItem('estadisticasEjercicios', JSON.stringify(estadisticas));
+            }
+            
+            mostrarBotonVolver();
+        } else {
+            let min = Math.floor(tiempoRestante / 60);
+            let seg = tiempoRestante % 60;
+            document.getElementById('tiempo').textContent = `${min}:${seg.toString().padStart(2, '0')}`;
+            tiempoRestante--;
+        }
+    }
+
+    function verificarRespuesta() {
+        const resp = document.getElementById('respuesta').value.trim();
+        const btnEnviar = document.querySelector('#ejercicioDetalle button');
+        const correcta = ejercicioActual.respuesta.trim();
+
+        // Convertir ambas respuestas a número flotante
+        const respNum = parseFloat(resp);
+        const correctaNum = parseFloat(correcta);
+
+        // Registrar el intento
+        if (ejercicioActual && ejercicioActual.id) {
+            const stats = estadisticas[ejercicioActual.id] || { intentos: 0, aciertos: 0 };
+            stats.intentos += 1;
+            estadisticas[ejercicioActual.id] = stats;
+        }
+
+        // Verifica si ambas son números válidos
+        if (!isNaN(respNum) && !isNaN(correctaNum)) {
+            // Funciones para calcular el porcentaje de error
+            const errorPorc = Math.abs(respNum - correctaNum) / Math.abs(correctaNum) * 100;
+            let semaforo = '';
+            if (errorPorc < 1) {
+                semaforo = '<span style="background:#43a047;color:#fff;padding:4px 12px;border-radius:8px;"> Bien hecho</span>';
+                
+                // Registrar acierto
+                if (ejercicioActual && ejercicioActual.id) {
+                    const stats = estadisticas[ejercicioActual.id];
+                    stats.aciertos += 1;
+                    estadisticas[ejercicioActual.id] = stats;
+                    localStorage.setItem('estadisticasEjercicios', JSON.stringify(estadisticas));
+                }
+            } else if (errorPorc < 3) {
+                semaforo = '<span style="background:#fbc02d;color:#fff;padding:4px 12px;border-radius:8px;">Se pueden mejorar los decimales</span>';
+            } else if (errorPorc <= 5) {
+                semaforo = '<span style="background:#d32f2f;color:#fff;padding:4px 12px;border-radius:8px;">Estas muy lejos del resultado</span>';
+            }
+
+            if (errorPorc <= 5) {
+                clearInterval(timerInterval);
+                document.getElementById('feedback').innerHTML =
+                    `<span class="success">¡Correcto! Has alcanzado tu objetivo.<br>${semaforo}</span>`;
+                document.getElementById('respuesta').disabled = true;
+                btnEnviar.disabled = true;
+                mostrarBotonVolver();
+            } else {
+                intentos--;
+                document.getElementById('intentos').textContent = intentos;
+                document.getElementById('feedback').innerHTML =
+                    `<span class="error">Respuesta fuera del margen permitido (error: ${errorPorc.toFixed(2)}%).<br>${semaforo}</span>`;
+                if (intentos === 0) {
+                    clearInterval(timerInterval);
+                    document.getElementById('feedback').innerHTML += '<br><span class="error">Has agotado tus intentos.</span>';
+                    document.getElementById('respuesta').disabled = true;
+                    btnEnviar.disabled = true;
+                    mostrarBotonVolver();
+                } else {
+                    // Generar nuevo ejercicio con valores diferentes
+                    setTimeout(() => {
+                        const idx = parseInt(ejercicioActual.id.split('-')[1]);
+                        iniciarEjercicio(idx);
+                    }, 1500);
+                }
+            }
+        } else {
+            // Si no es número, simplemente compara texto (por si acaso)
+            if (resp.toLowerCase() === correcta.toLowerCase()) {
+                clearInterval(timerInterval);
+                document.getElementById('feedback').innerHTML = '<span class="success">Bien hecho, ya estás a un paso más de ser ingeniero.<br><span style="background:#43a047;color:#fff;padding:4px 12px;border-radius:8px;">Verde (error 0%)</span></span>';
+                document.getElementById('respuesta').disabled = true;
+                btnEnviar.disabled = true;
+                
+                // Registrar acierto
+                if (ejercicioActual && ejercicioActual.id) {
+                    const stats = estadisticas[ejercicioActual.id];
+                    stats.aciertos += 1;
+                    estadisticas[ejercicioActual.id] = stats;
+                    localStorage.setItem('estadisticasEjercicios', JSON.stringify(estadisticas));
+                }
+                
+                mostrarBotonVolver();
+            } else {
+                intentos--;
+                document.getElementById('intentos').textContent = intentos;
+                if (intentos > 0) {
+                    document.getElementById('feedback').innerHTML = '<span class="error">¿Qué pasa ingeniero? vuelvelo a intentar</span>';
+                    
+                    // Generar nuevo ejercicio con valores diferentes
+                    setTimeout(() => {
+                        const idx = parseInt(ejercicioActual.id.split('-')[1]);
+                        iniciarEjercicio(idx);
+                    }, 1500);
+                } else {
+                    clearInterval(timerInterval);
+                    document.getElementById('feedback').innerHTML = '<span class="error">Lo siento ingeniero, has agotado tus intentos.</span>';
+                    document.getElementById('respuesta').disabled = true;
+                    btnEnviar.disabled = true;
+                    mostrarBotonVolver();
+                }
+            }
+        }
+    }
+
+    // Agrega esta función para mostrar el botón después de responder
+    function mostrarBotonVolver() {
+        if (!document.getElementById('volverTemas')) {
+            const btn = document.createElement('button');
+            btn.id = 'volverTemas';
+            btn.textContent = 'Seleccionar otro tema';
+            btn.style.marginTop = '15px';
+            btn.onclick = volverATemas;
+            document.getElementById('feedback').appendChild(btn);
+        }
+    }
+
+    function volverATemas() {
+        // stop any running timer when returning to temas
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+        document.getElementById('ejercicioDetalle').classList.add('hidden');
+        document.getElementById('temas').classList.remove('hidden');
+        // Elimina el botón para la próxima vez
+        const btn = document.getElementById('volverTemas');
+        if (btn) btn.remove();
+        
+        // Actualizar la lista de ejercicios para reflejar nuevas estadísticas
+        mostrarEjercicios();
+    }
+</script>
+<script>
+    (function(){
+        const logo = document.querySelector('.utb-logo');
+        const fallback = document.getElementById('logoTextFallback');
+        if (logo) {
+            logo.addEventListener('load', () => { console.log('LOGO (deepseek) loaded:', logo.src); });
+            logo.addEventListener('error', () => { console.warn('LOGO (deepseek) failed to load; showing fallback text'); if (fallback) fallback.style.display = 'block'; });
+            setTimeout(() => { if (logo && logo.naturalWidth > 0) console.log('LOGO (deepseek) already loaded (cached):', logo.src); else console.log('LOGO (deepseek) not loaded yet or naturalWidth 0'); }, 50);
+        }
+    })();
+</script>
+</body>
+</html>

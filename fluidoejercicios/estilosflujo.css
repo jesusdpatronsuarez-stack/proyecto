@@ -1,0 +1,222 @@
+/* Paleta y reset */
+:root{
+    --primary: #1a2e91;   /* Azul UTB */
+    --primary-2: #0f1f6b; /* tono más oscuro */
+    --accent: #1976d2;    /* azul material-like */
+    --bg: #f5f7fb;
+    --text: #1b1f29;
+    --muted: #607D8B;
+    --green: #2e7d32;
+    --yellow: #f9a825;
+    --red: #c62828;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, 'Times New Roman', Times, serif;
+    color:var(--text);
+    /* Fondo con gradiente sutil que combina con el logo */
+    background:
+      radial-gradient(1200px 600px at 10% 10%, rgba(255,255,255,0.06), rgba(255,255,255,0) 60%),
+      linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
+  }
+  
+  /* Header y marca - MEJORADO */
+  .site-header{
+    position:sticky; top:0; z-index:10; color:#fff;
+    background: rgba(26, 46, 145, 0.85); /* Fondo semitransparente que combina con el gradiente */
+    backdrop-filter: blur(8px); /* Efecto de desenfoque para mejor integración */
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .brand{ display:flex; align-items:center; gap:14px; }
+  .utb-logo{ 
+    height:44px; width:auto;
+    /* Mejor integración con el fondo */
+    filter: brightness(0) invert(1) drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    opacity: 0.95;
+    transition: opacity 0.3s ease;
+  }
+  .utb-logo:hover {
+    opacity: 1;
+  }
+  .brand-text h1{ 
+    margin:0; 
+    font-size: 1.25rem; 
+    color:#fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  }
+  .brand-text p{ 
+    margin:0; 
+    font-size: .875rem; 
+    color:#e3e8ff;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+  }
+  
+  /* Contenedor principal */
+  .container{ max-width: 860px; margin: 24px auto; padding: 0 16px; }
+  .card{ 
+    background:#fff; 
+    border-radius:14px; 
+    padding:22px; 
+    box-shadow: 0 10px 24px rgba(0,0,0,0.10); 
+    margin-bottom:16px;
+    backdrop-filter: blur(5px);
+  }
+  .grid-2{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+  @media (max-width:700px){ .grid-2{ grid-template-columns:1fr; } }
+  
+  label{ font-weight:600; display:block; margin-bottom:6px; }
+  .req{ color:var(--red); }
+  input[type="text"], input[type="number"], select{
+    width:100%; padding:10px 12px; border:1px solid #cfd8dc; border-radius:10px; font-size:1rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  input[type="text"]:focus, input[type="number"]:focus, select:focus{
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+  }
+  select{ background:#fff; }
+  
+  button{ 
+    border:none; 
+    border-radius:10px; 
+    padding:10px 16px; 
+    cursor:pointer; 
+    font-weight:600;
+    transition: all 0.3s ease;
+  }
+  button.primary{ 
+    background: var(--accent); 
+    color:#fff;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+  }
+  button.primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
+  }
+  button.primary:disabled{ opacity:.5; cursor:not-allowed; }
+  button.ghost{ 
+    background: transparent; 
+    color: var(--accent); 
+    border: 1px solid #bbdefb;
+  }
+  button.ghost:hover {
+    background: rgba(25, 118, 210, 0.1);
+  }
+  button + button{ margin-left:8px; }
+  
+  .statusbar{ display:flex; gap:16px; align-items:center; margin-top:10px; margin-bottom:16px; }
+  .timer{ font-weight:700; color: var(--red); }
+  .tries{ font-weight:700; color: var(--muted); }
+  .badge{ padding:6px 10px; border-radius:999px; font-weight:700; background:#eceff1; color:#37474f; }
+  .badge.green{ background:#c8e6c9; color:var(--green); }
+  .badge.yellow{ background:#fff9c4; color:var(--yellow); }
+  .badge.red{ background:#ffcdd2; color:var(--red); }
+  .badge.neutral{ background:#eceff1; color:#37474f; }
+  
+  .enunciado{ 
+    background:#f6fbff; 
+    border-left:4px solid var(--accent); 
+    padding:12px; 
+    border-radius:8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .respuesta-wrap{ margin-top:12px; }
+  .units{ font-size:.9rem; color:var(--muted); margin-top:-8px; margin-bottom:10px; }
+  .feedback{ margin-top:8px; }
+  .success{ color: var(--green); font-weight:700; }
+  .error{ color: var(--red); font-weight:700; }
+  .conceptos{ 
+    background:#eef5ff; 
+    border-left:4px solid var(--accent); 
+    padding:12px; 
+    border-radius:8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .muted{ color: var(--muted); }
+  .hidden{ display:none; }
+  a { color: var(--accent); }
+  a:visited { color: #0b63a8; }
+  input::placeholder { color: rgba(27,31,41,0.5); }
+  
+  /* Estilos para el sistema de semáforo */
+  .dificultad {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-left: 10px;
+  }
+  .dificultad.verde {
+    background-color: #c8e6c9;
+    color: #2e7d32;
+  }
+  .dificultad.amarillo {
+    background-color: #fff9c4;
+    color: #f57f17;
+  }
+  .dificultad.rojo {
+    background-color: #ffcdd2;
+    color: #c62828;
+  }
+  
+  .site-footer{ 
+    text-align:center; 
+    color:#e3e8ff; 
+    padding:16px;
+    margin-top: 30px;
+  }
+
+  /* Estilos para los botones de ejercicios */
+  .ejercicio {
+    display: block;
+    width: 100%;
+    margin: 8px 0;
+    text-align: left;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 12px 16px;
+    transition: all 0.3s ease;
+  }
+    .video-fallback { display: none; padding: 12px; background: #fff; border-radius: 8px; color: #212121; border: 1px solid #e0e0e0; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+    .video-note { display:block; padding: 8px 12px; background: #ffffff; color: #0b2b5d; border-radius: 8px; border: 2px solid var(--accent); text-align:center; font-weight:700; margin-bottom: 8px; }
+    .video-note a { color: var(--accent); font-weight:700; text-decoration:underline; }
+    .video-diag { font-size: .9rem; margin-top: 8px; color: #37474f; padding: 8px 10px; background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; }
+    .video-diag.success { border-left: 4px solid #2e7d32; }
+    .video-diag.warn { border-left: 4px solid #f9a825; }
+    .video-diag.error { border-left: 4px solid #c62828; }
+    .video-thumb { width: 100%; max-width: 360px; display:block; margin: 8px auto; border-radius:6px; border: 1px solid #e0e0e0; }
+  .ejercicio:hover {
+    background: #f5f7fb;
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  /* Mejoras responsive */
+  @media (max-width: 600px) {
+    .site-header {
+      padding: 10px 16px;
+    }
+    .utb-logo {
+      height: 36px;
+    }
+    .brand-text h1 {
+      font-size: 1.1rem;
+    }
+    .brand-text p {
+      font-size: 0.8rem;
+    }
+    .container {
+      margin: 16px auto;
+      padding: 0 12px;
+    }
+    .card {
+      padding: 16px;
+    }
+  }
